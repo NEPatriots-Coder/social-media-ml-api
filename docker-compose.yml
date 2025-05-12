@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  ml-api:
+    build: 
+      context: ./ml-api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - ENVIRONMENT=development
+    volumes:
+      - ./data:/app/data
+      - ./ml-api/app:/app/app
+    depends_on:
+      - redis
+    networks:
+      - ml-api-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - ml-api-network
+
+  # Add monitoring services for local development
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - ml-api-network
+
+networks:
+  ml-api-network:
+    driver: bridge
+
+volumes:
+  prometheus_data:
